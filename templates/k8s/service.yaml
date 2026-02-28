@@ -1,0 +1,57 @@
+# Kubernetes Service Manifest
+# Generated from DevTools-CLI template
+# Apply: kubectl apply -f service.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}
+  labels:
+    app: {{ APP_NAME }}
+    managed-by: devtools-cli
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+spec:
+  type: {{ SERVICE_TYPE | default('ClusterIP') }}
+  
+  # Session Affinity
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+  
+  # Ports
+  ports:
+  - name: http
+    port: {{ PORT }}
+    targetPort: http
+    protocol: TCP
+    {% if SERVICE_TYPE == 'LoadBalancer' %}
+    # NodePort for LoadBalancer (auto-assigned if not specified)
+    # nodePort: 30080
+    {% endif %}
+  
+  # Selector
+  selector:
+    app: {{ APP_NAME }}
+
+---
+# Headless Service for StatefulSet (optional)
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ APP_NAME }}-headless
+  labels:
+    app: {{ APP_NAME }}
+    type: headless
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: http
+    port: {{ PORT }}
+    targetPort: http
+    protocol: TCP
+  selector:
+    app: {{ APP_NAME }}

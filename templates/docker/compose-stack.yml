@@ -1,0 +1,106 @@
+# Docker Compose Full Stack
+# Generated from DevTools-CLI template
+# Usage: docker-compose -f compose-stack.yml up -d
+
+version: '3.9'
+
+services:
+  # ============================================================================
+  # Application Service
+  # ============================================================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: {{ APP_NAME }}-app
+    restart: unless-stopped
+    ports:
+      - "{{ APP_PORT | default('8000') }}:{{ APP_PORT | default('8000') }}"
+    environment:
+      - DATABASE_URL=postgresql://{{ POSTGRES_USER | default('postgres') }}:{{ POSTGRES_PASSWORD | default('postgres') }}@postgres:5432/{{ POSTGRES_DB | default('app_db') }}
+      - REDIS_URL=redis://redis:6379/0
+      - APP_ENV=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:{{ APP_PORT | default('8000') }}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================================================
+  # PostgreSQL Database
+  # ============================================================================
+  postgres:
+    image: postgres:{{ POSTGRES_VERSION | default('16') }}-alpine
+    container_name: {{ APP_NAME }}-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER={{ POSTGRES_USER | default('postgres') }}
+      - POSTGRES_PASSWORD={{ POSTGRES_PASSWORD | default('postgres') }}
+      - POSTGRES_DB={{ POSTGRES_DB | default('app_db') }}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U {{ POSTGRES_USER | default('postgres') }}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================================
+  # Redis Cache
+  # ============================================================================
+  redis:
+    image: redis:{{ REDIS_VERSION | default('7') }}-alpine
+    container_name: {{ APP_NAME }}-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ============================================================================
+  # Nginx Reverse Proxy
+  # ============================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: {{ APP_NAME }}-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - app
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
