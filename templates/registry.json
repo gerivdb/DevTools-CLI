@@ -1,0 +1,93 @@
+{
+  "version": "1.0.0",
+  "updated_at": "2026-02-28T19:30:00Z",
+  "categories": {
+    "ci": {
+      "name": "CI/CD Pipelines",
+      "description": "Continuous Integration workflows (GitHub Actions, GitLab CI)",
+      "templates": [
+        {
+          "id": "github-actions-ci",
+          "name": "GitHub Actions CI Pipeline",
+          "path": "ci/github-actions-ci.yml",
+          "language": "yaml",
+          "supports": ["python", "node", "go"],
+          "variables": ["PYTHON_VERSION", "RUN_TESTS", "RUN_LINT"],
+          "description": "Complete CI pipeline with lint, test, coverage, security scan"
+        },
+        {
+          "id": "github-actions-release",
+          "name": "GitHub Actions Release Automation",
+          "path": "ci/github-actions-release.yml",
+          "language": "yaml",
+          "supports": ["semantic-release"],
+          "variables": ["RELEASE_BRANCHES", "CHANGELOG_ENABLED"],
+          "description": "Automated release with semantic versioning"
+        }
+      ]
+    },
+    "docker": {
+      "name": "Docker Containers",
+      "description": "Dockerfile templates for microservices",
+      "templates": [
+        {
+          "id": "python-fastapi",
+          "name": "Python FastAPI Service",
+          "path": "docker/python-fastapi.dockerfile",
+          "language": "dockerfile",
+          "supports": ["fastapi", "uvicorn"],
+          "variables": ["PYTHON_VERSION", "APP_NAME", "PORT"],
+          "description": "Multi-stage Dockerfile for FastAPI microservice"
+        },
+        {
+          "id": "compose-stack",
+          "name": "Docker Compose Full Stack",
+          "path": "docker/compose-stack.yml",
+          "language": "yaml",
+          "supports": ["postgres", "redis"],
+          "variables": ["POSTGRES_VERSION", "REDIS_VERSION", "APP_NAME"],
+          "description": "Application stack (app + database + cache)"
+        }
+      ]
+    },
+    "k8s": {
+      "name": "Kubernetes Manifests",
+      "description": "Kubernetes YAML manifests",
+      "templates": [
+        {
+          "id": "k8s-deployment",
+          "name": "Kubernetes Deployment",
+          "path": "k8s/deployment.yaml",
+          "language": "yaml",
+          "supports": ["rolling-update", "health-checks"],
+          "variables": ["APP_NAME", "IMAGE", "REPLICAS", "PORT"],
+          "description": "Production deployment with health checks"
+        },
+        {
+          "id": "k8s-service",
+          "name": "Kubernetes Service",
+          "path": "k8s/service.yaml",
+          "language": "yaml",
+          "supports": ["clusterip", "loadbalancer"],
+          "variables": ["APP_NAME", "PORT", "SERVICE_TYPE"],
+          "description": "Kubernetes service (ClusterIP or LoadBalancer)"
+        }
+      ]
+    },
+    "terraform": {
+      "name": "Infrastructure as Code",
+      "description": "Terraform modules",
+      "templates": [
+        {
+          "id": "terraform-aws-vpc",
+          "name": "AWS VPC Module",
+          "path": "terraform/aws-vpc.tf",
+          "language": "hcl",
+          "supports": ["aws"],
+          "variables": ["VPC_CIDR", "REGION", "PROJECT_NAME"],
+          "description": "VPC with public/private subnets"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,36 @@
+version: "1.0"
+ecosystem: "ecosystem-1"
+role: "devops_quality"
+priority: 3
+
+rules:
+  - name: "Intent Hash Mandatory"
+    pattern: "^\\[DEVTOOLS-AUTO\\]"
+    scope: "commit_messages"
+    enforcement: "strict"
+  
+  - name: "Tests Required"
+    threshold: 0.80
+    scope: "pull_requests"
+    enforcement: "strict"
+  
+  - name: "Phi-CPS Tracking"
+    validate: true
+    scope: "deployments"
+    threshold: 0.05
+
+integrations:
+  ecos_cli:
+    registry_path: "../ECOYSTEM/tooling/ecos_cli/registry.json"
+    wal_endpoint: "sqlite://ECOYSTEM/global_wal.db"
+  
+  kiva_cli:
+    optional: true
+    coordination: "subprocess"
+
+dependencies:
+  required:
+    - "ECOYSTEM>=5.0.0"
+  optional:
+    - "KIVA-CLI>=0.1.0"
+    - "BRAIN>=1.0.0"
